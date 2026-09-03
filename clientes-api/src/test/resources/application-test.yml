@@ -1,0 +1,8 @@
+spring:
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: create-drop
+
+jwt:
+  secret: segredo-fixo-apenas-para-testes-automatizados
