@@ -1,10 +1,10 @@
 package com.atlastt.clientesapi.domain.model;
 
-import com.atlastt.clientesapi.domain.exception.GuardianRequiredException;
-
 import java.time.LocalDate;
-import java.time.Period;
 import java.time.LocalDateTime;
+import java.time.Period;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -39,9 +39,7 @@ public final class Client {
         Objects.requireNonNull(birthDate, "birthDate must not be null");
 
         LocalDateTime now = LocalDateTime.now();
-        Client client = new Client(UUID.randomUUID(), personalData, birthDate, guardianLink, now, now);
-        client.validateGuardianRequirement();
-        return client;
+        return new Client(UUID.randomUUID(), personalData, birthDate, guardianLink, now, now);
     }
 
     public static Client restore(UUID id,
@@ -60,14 +58,7 @@ public final class Client {
     }
 
     public void updateGuardianLink(GuardianLink newGuardianLink) {
-        GuardianLink previous = this.guardianLink;
         this.guardianLink = newGuardianLink;
-        try {
-            validateGuardianRequirement();
-        } catch (GuardianRequiredException e) {
-            this.guardianLink = previous;
-            throw e;
-        }
         this.updatedAt = LocalDateTime.now();
     }
 
@@ -77,10 +68,18 @@ public final class Client {
         this.updatedAt = LocalDateTime.now();
     }
 
-    private void validateGuardianRequirement() {
+    public List<String> incompletenessReasons() {
+        List<String> reasons = new ArrayList<>();
+
         if (isMinor() && guardianLink == null) {
-            throw new GuardianRequiredException(id);
+            reasons.add("Guardian is required for minors");
         }
+
+        return reasons;
+    }
+
+    public boolean isComplete() {
+        return incompletenessReasons().isEmpty();
     }
 
     public boolean isMinor() {
